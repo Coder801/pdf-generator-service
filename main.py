@@ -4,16 +4,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from playwright.async_api import async_playwright
 import asyncio
+import os
 
 app = FastAPI()
 
 # Настройка CORS
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:8080").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8080"],  # Адрес твоего фронтенда
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],  # Разрешить все методы (GET, POST и т.д.)
-    allow_headers=["*"],  # Разрешить все заголовки
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 class PDFRequest(BaseModel):
