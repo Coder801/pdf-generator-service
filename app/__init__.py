@@ -10,10 +10,16 @@ def get_allowed_origins() -> list[str]:
     if settings.DEV_MODE:
         return ["*"]
 
-    print("CORS Origins:", settings.ALLOWED_ORIGINS)
-
     origins = settings.ALLOWED_ORIGINS
-    return [origin.strip() for origin in origins.split(",") if origin.strip()]
+
+    if not origins:
+        print("WARNING: ALLOWED_ORIGINS is not set! CORS will block all requests.")
+        return []
+
+    allowed = [origin.strip() for origin in origins.split(",") if origin.strip()]
+    print(f"CORS Origins configured: {allowed}")
+
+    return allowed
 
 
 def create_app() -> FastAPI:
