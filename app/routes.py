@@ -23,7 +23,12 @@ async def health_check():
 async def generate_pdf(request: PDFRequest):
     """Generate PDF from a web page."""
     try:
-        pdf_buffer = await generate_pdf_from_url(str(request.currentPage), str(request.currentLanguage))
+        currentPage = str(request.currentPage)
+        currentLanguage = str(request.currentLanguage)
+        width = request.size.width
+        height = request.size.height
+
+        pdf_buffer = await generate_pdf_from_url(currentPage, currentLanguage, width = 1440, height = 800)
 
         return Response(
             content=pdf_buffer,

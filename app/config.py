@@ -8,8 +8,8 @@ class Settings:
     ALLOWED_ORIGINS: str = os.getenv("ALLOWED_ORIGINS", "")
     
     # Viewport settings
-    VIEWPORT_WIDTH: int = 1800
-    VIEWPORT_HEIGHT: int = 800
+    DEFAULT_VIEWPORT_WIDTH: int = 1440
+    DEFAULT_VIEWPORT_HEIGHT: int = 800
     
     # Timeout settings
     DEFAULT_TIMEOUT: int = 10000
