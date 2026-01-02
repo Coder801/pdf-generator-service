@@ -35,7 +35,7 @@ def add_lang_param(url: str, lang: str) -> str:
     return new_url
 
 
-async def generate_pdf_from_url(url: str, lang: str = "en") -> bytes:
+async def generate_pdf_from_url(url: str, lang: str = "en", width: int = 1440, height: int = 800) -> bytes:
     """Generate PDF from the given URL."""
     # Add lang parameter to URL
     url_with_lang = add_lang_param(url, lang)
@@ -54,8 +54,8 @@ async def generate_pdf_from_url(url: str, lang: str = "en") -> bytes:
 
         try:
             await page.set_viewport_size({
-                'width': settings.VIEWPORT_WIDTH,
-                'height': settings.VIEWPORT_HEIGHT
+                'width': width,
+                'height': height
             })
 
             print(f"Attempting to navigate to: {url_with_lang}")
