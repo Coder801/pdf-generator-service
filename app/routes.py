@@ -28,7 +28,7 @@ async def generate_pdf(request: PDFRequest):
         width = request.size.width
         height = request.size.height
 
-        pdf_buffer = await generate_pdf_from_url(currentPage, currentLanguage, width = 1440, height = 800)
+        pdf_buffer = await generate_pdf_from_url(currentPage, currentLanguage, width=width, height=height)
 
         return Response(
             content=pdf_buffer,
