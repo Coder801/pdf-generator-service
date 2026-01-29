@@ -67,11 +67,11 @@ async def generate_pdf_from_url(url: str, lang: str = "en", width: int = 1440, h
             await page.wait_for_selector('body', timeout=settings.DEFAULT_TIMEOUT)
             await asyncio.sleep(settings.PAGE_LOAD_DELAY)
 
-            width, height = await get_page_dimensions(page)
+            _, content_height = await get_page_dimensions(page)
 
             pdf_buffer = await page.pdf(
                 width=f'{width}px',
-                height=f'{height}px',
+                height=f'{content_height}px',
                 print_background=True,
             )
 
