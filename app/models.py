@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel, HttpUrl
 
 class PDFSize(BaseModel):
@@ -13,6 +15,8 @@ class PDFRequest(BaseModel):
     currentPage: HttpUrl
     currentLanguage: str = "en"
     size: PDFSize
+    format: Literal["full", "a4"] = "full"
+    orientation: Literal["portrait", "landscape"] = "portrait"
 
 
 class HealthCheckResponse(BaseModel):

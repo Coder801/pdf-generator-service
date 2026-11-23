@@ -11,7 +11,7 @@ async def get_page_dimensions(page: Page) -> tuple[int, int]:
     bounding_box = await content_handle.bounding_box()
 
     if not bounding_box:
-        return settings.VIEWPORT_WIDTH, settings.VIEWPORT_HEIGHT
+        return settings.DEFAULT_VIEWPORT_WIDTH, settings.DEFAULT_VIEWPORT_HEIGHT
 
     return int(bounding_box['width']), int(bounding_box['height'])
 
@@ -35,7 +35,18 @@ def add_lang_param(url: str, lang: str) -> str:
     return new_url
 
 
-async def generate_pdf_from_url(url: str, lang: str = "en", width: int = 1440, height: int = 800) -> bytes:
+A4_WIDTH_PX = 794  # 210mm at 96 DPI
+A4_HEIGHT_PX = 1123  # 297mm at 96 DPI
+
+
+async def generate_pdf_from_url(
+    url: str,
+    lang: str = "en",
+    width: int = 1440,
+    height: int = 800,
+    page_format: str = "full",
+    orientation: str = "portrait",
+) -> bytes:
     """Generate PDF from the given URL."""
     # Add lang parameter to URL
     url_with_lang = add_lang_param(url, lang)
@@ -67,13 +78,26 @@ async def generate_pdf_from_url(url: str, lang: str = "en", width: int = 1440, h
             await page.wait_for_selector('body', timeout=settings.DEFAULT_TIMEOUT)
             await asyncio.sleep(settings.PAGE_LOAD_DELAY)
 
-            _, content_height = await get_page_dimensions(page)
+            if page_format == "a4":
+                # Scale down so the layout keeps the requested viewport width
+                # and is split into A4 pages.
+                landscape = orientation == "landscape"
+                paper_width = A4_HEIGHT_PX if landscape else A4_WIDTH_PX
+                scale = max(0.1, min(1.0, paper_width / width))
+                pdf_buffer = await page.pdf(
+                    format='A4',
+                    landscape=landscape,
+                    scale=scale,
+                    print_background=True,
+                )
+            else:
+                _, content_height = await get_page_dimensions(page)
 
-            pdf_buffer = await page.pdf(
-                width=f'{width}px',
-                height=f'{content_height}px',
-                print_background=True,
-            )
+                pdf_buffer = await page.pdf(
+                    width=f'{width}px',
+                    height=f'{content_height}px',
+                    print_background=True,
+                )
 
             return pdf_buffer
 
