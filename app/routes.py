@@ -1,9 +1,11 @@
+from urllib.parse import quote
+
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
 
 from app.config import settings
-from app.models import PDFRequest, HealthCheckResponse
-from app.pdf_service import generate_pdf_from_url
+from app.models import PDFHtmlRequest, PDFRequest, HealthCheckResponse
+from app.pdf_service import generate_pdf_from_html, generate_pdf_from_url
 
 
 router = APIRouter()
@@ -50,3 +52,27 @@ async def generate_pdf(request: PDFRequest):
             status_code=500,
             detail=f"Failed to generate PDF: {str(e)}"
         )
+
+
+@router.post("/generate-pdf-html")
+async def generate_pdf_html(request: PDFHtmlRequest):
+    """Generate an A4 PDF from a ready HTML page sent in the request.
+
+    For pages behind a login: the caller renders the page itself and sends its HTML,
+    so the browser here needs no session and no access to the caller's address.
+    """
+    try:
+        pdf_buffer = await generate_pdf_from_html(request.html, request.orientation)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate PDF: {str(e)}")
+    name = request.filename if request.filename.lower().endswith(".pdf") else f"{request.filename}.pdf"
+    ascii_name = name.encode("ascii", "ignore").decode() or "document.pdf"
+    return Response(
+        content=pdf_buffer,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": (
+                f'attachment; filename="{ascii_name}"; filename*=UTF-8\'\'{quote(name)}'
+            )
+        },
+    )

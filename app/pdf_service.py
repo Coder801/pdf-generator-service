@@ -39,6 +39,38 @@ A4_WIDTH_PX = 794  # 210mm at 96 DPI
 A4_HEIGHT_PX = 1123  # 297mm at 96 DPI
 
 
+async def generate_pdf_from_html(html: str, orientation: str = "portrait") -> bytes:
+    """Print a ready HTML page to A4.
+
+    The page lays itself out for A4 in mm: the viewport is as wide as the sheet at 96 dpi
+    (794 px portrait, 1123 px landscape), so the scale is 1, and the @page rule of the page
+    (size, margins, margin boxes) wins over the defaults (prefer_css_page_size).
+    """
+    landscape = orientation == "landscape"
+    width = A4_HEIGHT_PX if landscape else A4_WIDTH_PX
+    height = A4_WIDTH_PX if landscape else A4_HEIGHT_PX
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(
+            headless=True,
+            args=['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+        )
+        page = await browser.new_page(viewport={'width': width, 'height': height})
+        try:
+            await page.set_content(html, wait_until='load', timeout=30000)
+            # Embedded fonts are decoded asynchronously: print once they are ready
+            await page.evaluate("document.fonts.ready.then(() => true)")
+            await page.emulate_media(media='print')
+            return await page.pdf(
+                format='A4',
+                landscape=landscape,
+                print_background=True,
+                prefer_css_page_size=True,
+            )
+        finally:
+            await browser.close()
+
+
 async def generate_pdf_from_url(
     url: str,
     lang: str = "en",
